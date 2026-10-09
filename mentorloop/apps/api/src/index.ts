@@ -1,18 +1,24 @@
-import express from "express";
-import { pingResponseSchema, type PingResponse } from "@mentorloop/shared";
+import { createApp } from "./app";
 import { env } from "./config/env";
+import { logger } from "./config/logger";
+import { pool } from "./db/client";
+import { redis } from "./lib/redis";
 
-const app = express();
+const app = createApp();
 
-app.get("/ping", (_req, res) => {
-  const body: PingResponse = pingResponseSchema.parse({
-    ok: true,
-    service: "mentorloop-api",
-    time: new Date().toISOString(),
-  });
-  res.json(body);
+const server = app.listen(env.PORT, () => {
+  logger.info(`API listening on http://localhost:${env.PORT} (${env.NODE_ENV})`);
 });
 
-app.listen(env.PORT, () => {
-  console.log(`API listening on http://localhost:${env.PORT} (${env.NODE_ENV})`);
-});
+let shuttingDown = false;
+async function shutdown(signal: string) {
+  if (shuttingDown) return;
+  shuttingDown = true;
+  logger.info(`${signal} received, shutting down`);
+  server.close();
+  await Promise.allSettled([pool.end(), redis.quit()]);
+  process.exit(0);
+}
+
+process.on("SIGINT", () => void shutdown("SIGINT"));
+process.on("SIGTERM", () => void shutdown("SIGTERM"));
