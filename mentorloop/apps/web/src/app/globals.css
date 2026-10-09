@@ -1,0 +1,85 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: light;
+
+    --background: 42 36% 94.5%;
+    --foreground: 250 29% 16%;
+    --text-secondary: 254 11% 41%;
+    --muted-foreground: 255 8% 49%;
+
+    --card: 0 0% 100%;
+    --elevated: 263 29% 94.5%;
+    --border: 260 22% 89%;
+    --ring: 250 61% 62%;
+
+    --primary: 83 42% 19%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 254 52% 93.5%;
+    --secondary-foreground: 253 37% 31%;
+
+    --destructive: 350 64% 48%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 155 60% 28%;
+    --warning: 36 82% 32%;
+    --info: 216 72% 48%;
+
+    --ai: 249 100% 80%;
+    --ai-foreground: 253 45% 38%;
+
+    --brand-lime: 80 87% 68%;
+    --midnight: 245 37% 13%;
+
+    --sidebar: 245 37% 13%;
+    --sidebar-foreground: 252 45% 98%;
+    --sidebar-muted: 254 18% 67.5%;
+    --sidebar-border: 249 22% 30%;
+
+    --chart-1: 80 87% 68%;
+    --chart-2: 249 100% 80%;
+    --chart-grid: 260 22% 89%;
+
+    --radius: 1rem;
+  }
+
+  .dark {
+    color-scheme: dark;
+
+    --background: 245 37% 13%;
+    --foreground: 252 45% 98%;
+    --text-secondary: 253 21% 78%;
+    --muted-foreground: 254 18% 67.5%;
+
+    --card: 246 30% 18%;
+    --elevated: 248 26% 23%;
+    --border: 249 22% 30%;
+    --ring: 249 100% 80%;
+
+    --primary: 80 87% 68%;
+    --primary-foreground: 245 37% 13%;
+    --secondary: 250 22% 26%;
+    --secondary-foreground: 251 100% 92.5%;
+
+    --destructive: 350 70% 62%;
+    --destructive-foreground: 245 37% 13%;
+    --success: 155 55% 48%;
+    --warning: 38 85% 55%;
+    --info: 216 85% 66%;
+
+    --ai: 249 100% 80%;
+    --ai-foreground: 249 100% 80%;
+
+    --chart-grid: 249 22% 30%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+}
