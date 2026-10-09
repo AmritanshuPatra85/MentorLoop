@@ -1,8 +1,8 @@
 import express from "express";
 import { pingResponseSchema, type PingResponse } from "@mentorloop/shared";
+import { env } from "./config/env";
 
 const app = express();
-const port = Number(process.env.PORT ?? 4000);
 
 app.get("/ping", (_req, res) => {
   const body: PingResponse = pingResponseSchema.parse({
@@ -13,6 +13,6 @@ app.get("/ping", (_req, res) => {
   res.json(body);
 });
 
-app.listen(port, () => {
-  console.log(`API listening on http://localhost:${port}`);
+app.listen(env.PORT, () => {
+  console.log(`API listening on http://localhost:${env.PORT} (${env.NODE_ENV})`);
 });

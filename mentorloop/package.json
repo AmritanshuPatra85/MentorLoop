@@ -9,7 +9,15 @@
     "build": "npm run build --workspaces --if-present",
     "lint": "eslint .",
     "typecheck": "npm run typecheck --workspaces --if-present",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "infra:up": "docker compose -f infra/docker-compose.yml up -d --wait",
+    "infra:down": "docker compose -f infra/docker-compose.yml down",
+    "infra:reset": "docker compose -f infra/docker-compose.yml down -v && docker compose -f infra/docker-compose.yml up -d --wait",
+    "infra:logs": "docker compose -f infra/docker-compose.yml logs -f",
+    "db:generate": "npm run db:generate -w @mentorloop/api --",
+    "db:migrate": "npm run db:migrate -w @mentorloop/api",
+    "db:seed": "npm run db:seed -w @mentorloop/api",
+    "db:studio": "npm run db:studio -w @mentorloop/api"
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",

@@ -1,0 +1,38 @@
+name: mentorloop
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: mentorloop-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: mentorloop
+      POSTGRES_PASSWORD: mentorloop
+      POSTGRES_DB: mentorloop
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mentorloop -d mentorloop"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: mentorloop-redis
+    restart: unless-stopped
+    ports:
+      - "6380:6379"
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  pgdata:
+  redisdata:
