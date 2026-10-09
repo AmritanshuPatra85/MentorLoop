@@ -1,0 +1,1 @@
+ALTER TABLE "profile_embeddings" ADD COLUMN "content_hash" text DEFAULT '' NOT NULL;

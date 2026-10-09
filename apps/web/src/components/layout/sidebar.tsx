@@ -2,12 +2,15 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useAuth } from "@/components/auth/auth-provider";
 import { Brand } from "@/components/common/brand";
-import { navItems } from "@/config/nav";
+import { getNavItems } from "@/config/nav";
 import { cn } from "@/lib/utils";
 
 export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
+  const { user } = useAuth();
+  const navItems = user ? getNavItems(user.role) : [];
 
   return (
     <div className="flex h-full flex-col">
