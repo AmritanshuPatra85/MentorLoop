@@ -203,6 +203,31 @@ async function request<S extends ZodTypeAny>(
   }
 }
 
+/** Fetch an authenticated non-JSON resource (for example, a calendar file). */
+export async function downloadApiFile(path: string, filename: string): Promise<void> {
+  const sendFile = async () => fetch(`${API_URL}${path}`, {
+    method: "GET",
+    credentials: "include",
+    headers: { ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}) },
+  });
+  let response: Response;
+  try {
+    response = await sendFile();
+  } catch {
+    throw new ApiClientError({ status: 0, code: "NETWORK_ERROR", message: "Cannot reach the server. Check your connection and try again." });
+  }
+  if (response.status === 401) {
+    const session = await refreshSession().catch(() => null);
+    if (!session) throw new ApiClientError({ status: 401, code: "UNAUTHORIZED", message: "Please sign in again." });
+    response = await sendFile();
+  }
+  if (!response.ok) throw new ApiClientError({ status: response.status, code: `HTTP_${response.status}`, message: "The calendar file could not be downloaded." });
+  const url = URL.createObjectURL(await response.blob());
+  const anchor = document.createElement("a");
+  anchor.href = url; anchor.download = filename; anchor.click();
+  URL.revokeObjectURL(url);
+}
+
 export const api = {
   get: <S extends ZodTypeAny>(path: string, schema: S, opts?: RequestOptions) =>
     request("GET", path, schema, undefined, opts),

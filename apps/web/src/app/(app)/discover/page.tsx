@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { CalendarClock, ChevronLeft, ChevronRight, CircleHelp, Compass, Filter, Sparkles, UserRound, X } from "lucide-react";
-import { matchEventActionResponseSchema, matchingWithExplanationsResponseSchema, publicMentorProfileSchema, type MatchResultWithExplanation } from "@mentorloop/shared";
+import { matchEventActionResponseSchema, matchingWithExplanationsResponseSchema, myProfileResponseSchema, publicMentorProfileSchema, type MatchResultWithExplanation } from "@mentorloop/shared";
 import { EmptyState } from "@/components/common/empty-state";
 import { ErrorState } from "@/components/common/error-state";
 import { ListSkeleton } from "@/components/common/skeletons";
@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { api } from "@/lib/api-client";
 import { MatchActions } from "@/components/matching/match-actions";
+import { RequestToConnect } from "@/components/connections/request-to-connect";
 
 const PAGE_SIZE = 10;
 type SortMode = "recommended" | "experience" | "availability";
@@ -33,6 +34,13 @@ export default function DiscoverMentorsPage() {
   const [selected, setSelected] = useState<MatchResultWithExplanation | null>(null);
   const [showBreakdown, setShowBreakdown] = useState<string | null>(null);
   const queryClient = useQueryClient();
+  const myProfileQuery = useQuery({ queryKey: ["my-profile"], queryFn: () => api.get("/profiles/me", myProfileResponseSchema) });
+  const startupId = myProfileQuery.data?.publicProfilePath?.startsWith("/startups/")
+    ? myProfileQuery.data.publicProfilePath.slice("/startups/".length)
+    : null;
+  const startupName = typeof myProfileQuery.data?.profile?.startupName === "string"
+    ? myProfileQuery.data.profile.startupName
+    : "your startup";
   const matchesQuery = useQuery({
     queryKey: ["matches", "mentors"],
     queryFn: () => api.get("/matches/mentors", matchingWithExplanationsResponseSchema),
@@ -96,7 +104,7 @@ export default function DiscoverMentorsPage() {
         {matches.length === 0 ? <EmptyState icon={Compass} title="Your recommendations are on the way" description="Complete your startup profile and add your profile embedding to see eligible mentor matches here." /> : null}
         {matches.length > 0 && filtered.length === 0 ? <EmptyState icon={CircleHelp} title="No mentors match these filters" description="Try a different domain, stage, or availability fit." action={<Button variant="outline" onClick={() => { setDomain("all"); setStage("all"); setAvailability("all"); }}>Clear filters</Button>} /> : null}
         {pageMatches.length > 0 ? <div className="space-y-3">
-          {pageMatches.map((match, index) => <MentorMatchCard key={match.candidateId} match={match} rank={page * PAGE_SIZE + index + 1} breakdownOpen={showBreakdown === match.candidateId} onToggleBreakdown={() => setShowBreakdown(showBreakdown === match.candidateId ? null : match.candidateId)} onOpen={() => setSelected(match)} onSaved={() => { queryClient.setQueryData(["matches", "mentors"], (current: typeof matchesQuery.data) => current ? { ...current, matches: current.matches.map((item) => item.candidateId === match.candidateId ? { ...item, saved: true } : item) } : current); void queryClient.invalidateQueries({ queryKey: ["matches", "mentors"] }); }} onDismissed={() => { queryClient.setQueryData(["matches", "mentors"], (current: typeof matchesQuery.data) => current ? { ...current, matches: current.matches.filter((item) => item.candidateId !== match.candidateId) } : current); setPage((currentPage) => Math.min(currentPage, Math.max(0, Math.ceil((filtered.length - 1) / PAGE_SIZE) - 1))); void queryClient.invalidateQueries({ queryKey: ["matches", "mentors"] }); }} />)}
+          {pageMatches.map((match, index) => <MentorMatchCard key={match.candidateId} match={match} startupId={startupId} startupName={startupName} rank={page * PAGE_SIZE + index + 1} breakdownOpen={showBreakdown === match.candidateId} onToggleBreakdown={() => setShowBreakdown(showBreakdown === match.candidateId ? null : match.candidateId)} onOpen={() => setSelected(match)} onSaved={() => { queryClient.setQueryData(["matches", "mentors"], (current: typeof matchesQuery.data) => current ? { ...current, matches: current.matches.map((item) => item.candidateId === match.candidateId ? { ...item, saved: true } : item) } : current); void queryClient.invalidateQueries({ queryKey: ["matches", "mentors"] }); }} onDismissed={() => { queryClient.setQueryData(["matches", "mentors"], (current: typeof matchesQuery.data) => current ? { ...current, matches: current.matches.filter((item) => item.candidateId !== match.candidateId) } : current); setPage((currentPage) => Math.min(currentPage, Math.max(0, Math.ceil((filtered.length - 1) / PAGE_SIZE) - 1))); void queryClient.invalidateQueries({ queryKey: ["matches", "mentors"] }); }} />)}
           <div className="flex items-center justify-between gap-3 pt-2">
             <p className="text-sm text-muted-foreground">Page {page + 1} of {pageCount}</p>
             <div className="flex gap-2"><Button variant="outline" size="sm" disabled={page === 0} onClick={() => setPage((current) => Math.max(0, current - 1))}><ChevronLeft />Previous</Button><Button variant="outline" size="sm" disabled={page + 1 >= pageCount} onClick={() => setPage((current) => Math.min(pageCount - 1, current + 1))}>Next<ChevronRight /></Button></div>
@@ -108,7 +116,7 @@ export default function DiscoverMentorsPage() {
   );
 }
 
-function MentorMatchCard({ match, rank, breakdownOpen, onToggleBreakdown, onOpen, onSaved, onDismissed }: { match: MatchResultWithExplanation; rank: number; breakdownOpen: boolean; onToggleBreakdown: () => void; onOpen: () => void; onSaved: () => void; onDismissed: () => void }) {
+function MentorMatchCard({ match, startupId, startupName, rank, breakdownOpen, onToggleBreakdown, onOpen, onSaved, onDismissed }: { match: MatchResultWithExplanation; startupId: string | null; startupName: string; rank: number; breakdownOpen: boolean; onToggleBreakdown: () => void; onOpen: () => void; onSaved: () => void; onDismissed: () => void }) {
   const { mentor } = match;
   const score = Math.round(match.score * 100);
   const RoleIcon = UserRound;
@@ -131,6 +139,7 @@ function MentorMatchCard({ match, rank, breakdownOpen, onToggleBreakdown, onOpen
           <ScoreRing score={score} />
           <div className="flex-1 sm:text-center"><p className="text-xs text-muted-foreground">Match score</p><button onClick={onToggleBreakdown} aria-expanded={breakdownOpen} className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-primary underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><CircleHelp className="size-3.5" />{breakdownOpen ? "Hide details" : "Score details"}</button></div>
           <Button onClick={onOpen} size="sm" className="sm:w-full">View mentor</Button>
+          {startupId ? <RequestToConnect startupId={startupId} startupName={startupName} mentorId={match.candidateId} mentorName={mentor.name} /> : null}
           <MatchActions candidateType="mentor" candidateId={match.candidateId} saved={match.saved} onSaved={onSaved} onDismissed={onDismissed} />
         </div>
       </div>

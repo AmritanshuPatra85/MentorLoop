@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "sessions_booking_idempotency_uidx" ON "sessions" USING btree ("booking_actor_user_id","idempotency_key");

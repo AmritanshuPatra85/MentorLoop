@@ -8,4 +8,5 @@ export * from "./mentor-onboarding";
 export * from "./admin-approvals";
 export * from "./profiles";
 export * from "./matching";
+export * from "./scheduling";
 export * from "./profile-completeness";

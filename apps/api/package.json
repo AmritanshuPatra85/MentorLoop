@@ -7,7 +7,7 @@
     "dev": "tsx watch src/index.ts",
     "start": "tsx src/index.ts",
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test src/modules/auth/auth.test.ts src/modules/mentor-onboarding/mentor-onboarding.test.ts src/modules/admin/mentor-approvals.test.ts src/modules/profiles/profiles.test.ts src/modules/profiles/profile-completeness.test.ts src/modules/matching/eligibility.test.ts src/modules/matching/matching.test.ts src/modules/connections/connections.test.ts src/modules/embeddings/embedding.test.ts src/modules/embeddings/embedding.pipeline.test.ts src/modules/embeddings/embedding.db.test.ts src/modules/embeddings/embedding.integration.test.ts && vitest run src/modules/matching/explanations",
+    "test": "tsx --test src/modules/auth/auth.test.ts src/modules/scheduling/time.test.ts src/modules/scheduling/ics.test.ts src/modules/scheduling/scheduling.integration.test.ts src/modules/mentor-onboarding/mentor-onboarding.test.ts src/modules/admin/mentor-approvals.test.ts src/modules/profiles/profiles.test.ts src/modules/profiles/profile-completeness.test.ts src/modules/matching/eligibility.test.ts src/modules/matching/matching.test.ts src/modules/connections/connections.test.ts src/modules/embeddings/embedding.test.ts src/modules/embeddings/embedding.pipeline.test.ts src/modules/embeddings/embedding.db.test.ts src/modules/embeddings/embedding.integration.test.ts && vitest run src/modules/matching/explanations",
     "test:embedding-model": "tsx --test src/modules/embeddings/embedding.model.test.ts",
     "worker:embeddings": "tsx src/workers/embedding.worker.ts",
     "worker:match-explanations": "tsx src/workers/match-explanation.worker.ts",

@@ -6,6 +6,10 @@ const nextConfig: NextConfig = {
     const apiUrl = process.env.API_PROXY_URL ?? "http://127.0.0.1:4000";
     return [
       { source: "/auth/:path*", destination: `${apiUrl}/auth/:path*` },
+      { source: "/connections/:path*", destination: `${apiUrl}/connections/:path*` },
+      { source: "/availability/:path*", destination: `${apiUrl}/availability/:path*` },
+      { source: "/sessions-api/:path*", destination: `${apiUrl}/sessions/:path*` },
+      { source: "/calendar/:path*", destination: `${apiUrl}/calendar/:path*` },
       { source: "/taxonomy/:path*", destination: `${apiUrl}/taxonomy/:path*` },
       { source: "/profiles/:path*", destination: `${apiUrl}/profiles/:path*` },
       {
