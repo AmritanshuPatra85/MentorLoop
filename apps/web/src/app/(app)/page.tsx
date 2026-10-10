@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { api } from "@/lib/api-client";
 import { useAuth } from "@/components/auth/auth-provider";
+import { FounderStartupTimeline } from "@/components/timeline/startup-timeline";
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -76,6 +77,7 @@ export default function DashboardPage() {
           </div>
         </div>
       ) : null}
+      {role === "founder" ? <FounderStartupTimeline /> : null}
       <div className="grid gap-4 md:grid-cols-2">
         <ApiStatusCard />
         <EmptyState

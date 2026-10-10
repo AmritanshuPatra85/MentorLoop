@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --port 3000",
-    "test": "tsx --test src/lib/profile-cache.test.ts",
+    "test": "tsx --test src/lib/profile-cache.test.ts && vitest run src/components/sessions/session-brief-digest.test.ts src/lib/session-action-items.test.ts",
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc --noEmit"

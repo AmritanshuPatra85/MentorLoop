@@ -105,6 +105,10 @@ export function PublicMentorProfile({ id }: { id: string }) {
           </CardContent>
         </Card>
       </div>
+      <Card><CardHeader><h2 className="font-semibold">Mentor ratings</h2></CardHeader><CardContent className="space-y-3">
+        <p className="text-sm">{profile.averageRating === null ? "No ratings yet" : `${profile.averageRating.toFixed(1)} out of 5`} · {profile.ratingCount} {profile.ratingCount === 1 ? "rating" : "ratings"}</p>
+        {profile.publicFeedback.map((item,index)=><div key={`${item.createdAt}-${index}`} className="rounded-md border p-3"><p className="font-medium">{item.rating} / 5</p><p className="text-xs text-muted-foreground">{item.tags.map((tag)=>tag.replaceAll("_"," ")).join(" · ")}</p>{item.comment?<p className="mt-2 whitespace-pre-wrap text-sm">{item.comment}</p>:null}</div>)}
+      </CardContent></Card>
     </article>
   );
 }

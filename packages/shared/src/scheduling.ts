@@ -95,3 +95,87 @@ export const sessionListResponseSchema = z.object({ sessions: z.array(sessionSch
 export const calendarConnectionResponseSchema = z.object({ connected: z.boolean() });
 export const googleConnectUrlResponseSchema = z.object({ authorizationUrl: z.string().url() });
 export const googleCalendarEventResponseSchema = z.object({ calendarUrl: z.string().url().nullable(), meetingUrl: z.string().url().nullable() });
+
+const briefText = z.string().trim().min(1, "This field is required").max(2000, "Use no more than 2000 characters");
+export const sessionBriefInputSchema = z.object({
+  currentStatus: briefText,
+  specificQuestions: briefText,
+  desiredOutcome: briefText,
+}).strict();
+const digestText = z.string().trim().min(1).max(4000).refine((value) => !/[<>`]|\*\*|__|^\s*#{1,6}\s|^\s*[-*]\s/m.test(value), "Use plain text without Markdown");
+function sentenceCount(value: string) { return value.match(/[.!?](?:["')\]]*)?(?:\s|$)/g)?.length ?? 0; }
+export const sessionBriefDigestSchema = z.object({
+  summary: digestText.refine((value) => sentenceCount(value) >= 2 && sentenceCount(value) <= 3, "Summary must contain 2-3 sentences"),
+  key_questions: z.array(digestText).min(3).max(5),
+  suggested_focus: digestText.refine((value) => sentenceCount(value) >= 1 && sentenceCount(value) <= 2, "Suggested focus must contain 1-2 sentences"),
+}).strict();
+export type SessionBriefDigest = z.infer<typeof sessionBriefDigestSchema>;
+export const sessionBriefSchema = z.object({
+  id: z.string().uuid(), sessionId: z.string().uuid(), founderId: z.string().uuid(),
+  currentStatus: z.string(), specificQuestions: z.string(), desiredOutcome: z.string(),
+  contentHash: z.string().regex(/^[a-f0-9]{64}$/),
+  digest: sessionBriefDigestSchema.nullable(), digestStatus: z.enum(["pending", "ready", "failed"]),
+  digestModel: z.string().nullable(), digestGeneratedAt: z.string().datetime().nullable(),
+  createdAt: z.string().datetime(), updatedAt: z.string().datetime(),
+});
+export const sessionBriefResponseSchema = z.object({ brief: sessionBriefSchema.nullable() }).strict();
+
+export const sessionActionItemOwnerSchema = z.enum(["founder", "mentor", "shared", "unassigned"]);
+export const sessionActionItemPrioritySchema = z.enum(["low", "medium", "high"]);
+const actionItemTitleSchema = z.string().trim().min(1, "Add a title").max(160, "Use no more than 160 characters");
+const actionItemDescriptionSchema = z.string().trim().max(2000).nullable();
+const actionItemDueDateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/).refine((value) => {
+  const parsed = new Date(`${value}T00:00:00.000Z`);
+  return Number.isFinite(parsed.valueOf()) && parsed.toISOString().slice(0, 10) === value;
+}, "Use a valid calendar date").nullable();
+
+export const sessionActionItemProposalSchema = z.object({
+  title: actionItemTitleSchema,
+  description: actionItemDescriptionSchema,
+  owner: sessionActionItemOwnerSchema,
+  dueDate: actionItemDueDateSchema,
+  priority: sessionActionItemPrioritySchema,
+  sourceText: z.string().trim().max(500).nullable(),
+}).strict();
+export const sessionActionItemExtractionRequestSchema = z.object({
+  notes: z.string().trim().min(1, "Paste session notes to extract action items").max(16000, "Notes must be 16000 characters or fewer"),
+}).strict();
+export const sessionActionItemExtractionResponseSchema = z.object({
+  actionItems: z.array(sessionActionItemProposalSchema).max(20),
+}).strict();
+export const sessionActionItemSaveSchema = z.object({
+  submissionId: z.string().uuid(),
+  actionItems: z.array(z.object({
+    title: actionItemTitleSchema,
+    description: actionItemDescriptionSchema,
+    owner: sessionActionItemOwnerSchema,
+    dueDate: actionItemDueDateSchema,
+    priority: sessionActionItemPrioritySchema,
+  }).strict()).min(1, "Approve at least one action item").max(20),
+}).strict();
+export const sessionActionItemSchema = z.object({
+  id: z.string().uuid(), sessionId: z.string().uuid(), createdBy: z.string().uuid().nullable(), submissionId: z.string().uuid(),
+  title: actionItemTitleSchema, description: z.string().nullable(), owner: sessionActionItemOwnerSchema,
+  dueDate: actionItemDueDateSchema, priority: sessionActionItemPrioritySchema,
+  status: z.enum(["open", "in_progress", "done", "blocked"]), overdue: z.boolean(),
+  createdAt: z.string().datetime(), updatedAt: z.string().datetime(),
+});
+export const sessionActionItemsResponseSchema = z.object({ actionItems: z.array(sessionActionItemSchema) }).strict();
+export const sessionActionItemStatusSchema = z.enum(["open", "in_progress", "done", "blocked"]);
+export const sessionActionItemFilterSchema = z.object({
+  status: sessionActionItemStatusSchema.optional(), owner: sessionActionItemOwnerSchema.optional(), overdue: z.enum(["true", "false"]).optional(),
+}).strict();
+export const sessionActionItemUpdateSchema = z.object({
+  expectedUpdatedAt: z.string().datetime(),
+  title: actionItemTitleSchema.optional(), description: actionItemDescriptionSchema.optional(),
+  owner: sessionActionItemOwnerSchema.optional(), dueDate: actionItemDueDateSchema.optional(),
+  priority: sessionActionItemPrioritySchema.optional(), status: sessionActionItemStatusSchema.optional(),
+}).strict().refine((value) => Object.keys(value).some((key) => key !== "expectedUpdatedAt"), "Provide at least one field to update");
+export const actionItemProgressSummarySchema = z.object({
+  total: z.number().int().nonnegative(), open: z.number().int().nonnegative(), inProgress: z.number().int().nonnegative(),
+  done: z.number().int().nonnegative(), blocked: z.number().int().nonnegative(), overdue: z.number().int().nonnegative(),
+  completionPercentage: z.number().min(0).max(100),
+}).strict();
+export const connectionActionItemsResponseSchema = z.object({ actionItems: z.array(sessionActionItemSchema), summary: actionItemProgressSummarySchema }).strict();
+export type SessionActionItemProposal = z.infer<typeof sessionActionItemProposalSchema>;
+export type SessionActionItem = z.infer<typeof sessionActionItemSchema>;

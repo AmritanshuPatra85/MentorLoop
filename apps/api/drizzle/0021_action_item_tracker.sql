@@ -1,0 +1,2 @@
+ALTER TABLE "session_action_items" DROP CONSTRAINT "session_action_items_status_ck";--> statement-breakpoint
+ALTER TABLE "session_action_items" ADD CONSTRAINT "session_action_items_status_ck" CHECK ("session_action_items"."status" IN ('open','in_progress','done','blocked'));

@@ -2,6 +2,7 @@ import { z } from "zod";
 import { founderOnboardingDraftSchema } from "./founder-onboarding";
 import { mentorOnboardingDraftSchema } from "./mentor-onboarding";
 import { signupRoleSchema } from "./auth";
+import { publicMentorFeedbackSchema } from "./feedback";
 
 /** Authenticated user's private profile response. Never use this for public profile routes. */
 export const myProfileResponseSchema = z.object({
@@ -54,6 +55,9 @@ export const publicMentorProfileSchema = z.object({
   mentorshipStages: z.array(z.string()),
   linkedinUrl: z.string().url().nullable(),
   websiteUrl: z.string().url().nullable(),
+  averageRating: z.number().min(1).max(5).nullable(),
+  ratingCount: z.number().int().nonnegative(),
+  publicFeedback: z.array(publicMentorFeedbackSchema).max(5),
 });
 export type PublicMentorProfile = z.infer<typeof publicMentorProfileSchema>;
 

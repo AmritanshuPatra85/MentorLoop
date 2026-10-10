@@ -11,6 +11,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { downloadApiFile, api } from "@/lib/api-client";
+import { SessionBriefPanel } from "@/components/sessions/session-brief-panel";
+import { SessionActionItems } from "@/components/sessions/session-action-items";
+import { SessionFeedback } from "@/components/sessions/session-feedback";
 
 export default function SessionDetailPage() {
   const { user } = useAuth();
@@ -30,6 +33,9 @@ export default function SessionDetailPage() {
         {session.meetingUrl ? <a className="break-all text-primary underline" href={session.meetingUrl} target="_blank" rel="noreferrer">{session.meetingUrl}</a> : null}
         <div className="flex flex-wrap gap-2"><Button variant="outline" onClick={() => void downloadApiFile(`/sessions-api/${id}/calendar.ics`, `mentorloop-session-${id}.ics`)}>Download calendar file</Button>{active && <Link href={`/sessions?connectionId=${session.connectionId}&rescheduleId=${session.id}`} className="inline-flex h-10 items-center justify-center rounded-md border px-4 text-sm font-medium">Reschedule</Link>}</div>
       </CardContent></Card>
+      <SessionBriefPanel sessionId={session.id} sessionStatus={session.status} startsAt={session.startsAt} />
+      <SessionActionItems sessionId={session.id} />
+      {session.status === "completed" && (user?.role === "founder" || user?.role === "mentor") ? <SessionFeedback sessionId={session.id} role={user.role} /> : null}
       {active ? <Card><CardContent className="space-y-3 p-4"><h3 className="font-semibold">Meeting link</h3><div className="flex flex-col gap-2 sm:flex-row"><Input type="url" placeholder="https://…" value={meetingUrl || session.meetingUrl || ""} onChange={(event) => setMeetingUrl(event.target.value)} /><Button variant="outline" disabled={!meetingUrl.startsWith("https://") || linkUpdate.isPending} onClick={() => linkUpdate.mutate({ meetingUrl })}>Save link</Button><Button variant="outline" disabled={google.isPending} onClick={() => google.mutate()}>Add to Google Calendar</Button></div>{googleCalendarUrl ? <a className="text-sm text-primary underline" href={googleCalendarUrl} target="_blank" rel="noreferrer">Open calendar event</a> : null}{linkUpdate.isError || google.isError ? <p role="alert" className="text-sm text-destructive">{(linkUpdate.error ?? google.error)?.message}</p> : null}<label className="block space-y-1 text-sm">Action reason<Input value={reason} onChange={(event) => setReason(event.target.value)} placeholder="Required for cancellation" /></label><div className="flex flex-wrap gap-2"><Button variant="destructive" disabled={reason.trim().length < 3 || action.isPending} onClick={() => action.mutate({ action: "cancel", reason })}>Cancel session</Button><Button variant="outline" disabled={action.isPending} onClick={() => action.mutate({ action: "complete" })}>Mark complete</Button>{user?.role === "mentor" ? <Button variant="outline" disabled={reason.trim().length < 3 || action.isPending} onClick={() => action.mutate({ action: "no_show", reason })}>Mark no-show</Button> : null}</div>{action.isError ? <p role="alert" className="text-sm text-destructive">{action.error.message}</p> : null}</CardContent></Card> : null}
       <section className="space-y-3"><h3 className="font-semibold">Session history</h3>{query.data?.history.map((event) => <Card key={event.id}><CardContent className="p-4"><p className="font-medium">{event.eventType.replaceAll("_", " ")}</p><p className="text-sm text-muted-foreground">{new Date(event.createdAt).toLocaleString()} · {event.actorName ?? "System"}{event.reason ? ` · ${event.reason}` : ""}</p></CardContent></Card>)}</section>
     </div> : null}

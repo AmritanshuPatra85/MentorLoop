@@ -10,3 +10,5 @@ export * from "./profiles";
 export * from "./matching";
 export * from "./scheduling";
 export * from "./profile-completeness";
+export * from "./feedback";
+export * from "./startup-timeline";

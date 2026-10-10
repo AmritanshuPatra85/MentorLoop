@@ -23,6 +23,8 @@ import { connectionLifecycleRouter } from "./modules/connections/lifecycle.route
 import { availabilityRouter } from "./modules/scheduling/availability.routes";
 import { sessionsRouter } from "./modules/scheduling/sessions.routes";
 import { calendarRouter } from "./modules/scheduling/calendar.routes";
+import { adminFeedbackRouter } from "./modules/admin/feedback.routes";
+import { founderTimelineRouter } from "./modules/timeline/timeline.routes";
 
 export function createApp() {
   const app = express();
@@ -45,12 +47,14 @@ export function createApp() {
   app.use("/founder-onboarding", founderOnboardingRouter);
   app.use("/mentor-onboarding", mentorOnboardingRouter);
   app.use("/admin/mentor-approvals", mentorApprovalsRouter);
+  app.use("/admin/feedback", adminFeedbackRouter);
   app.use("/admin/matching", matchingAdminRouter);
   app.use("/matches", matchingRouter);
   app.use("/connections", connectionsRouter);
   app.use("/connections", connectionLifecycleRouter);
   app.use("/availability", availabilityRouter);
   app.use("/sessions", sessionsRouter);
+  app.use("/timeline", founderTimelineRouter);
   app.use("/calendar", calendarRouter);
   app.use("/auth", authRouter);
   if (env.NODE_ENV === "development") app.use("/debug", debugRouter);

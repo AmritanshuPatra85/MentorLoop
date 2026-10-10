@@ -7,8 +7,11 @@ const nextConfig: NextConfig = {
     return [
       { source: "/auth/:path*", destination: `${apiUrl}/auth/:path*` },
       { source: "/connections/:path*", destination: `${apiUrl}/connections/:path*` },
+      { source: "/matches/:path*", destination: `${apiUrl}/matches/:path*` },
       { source: "/availability/:path*", destination: `${apiUrl}/availability/:path*` },
       { source: "/sessions-api/:path*", destination: `${apiUrl}/sessions/:path*` },
+      { source: "/timeline", destination: `${apiUrl}/timeline` },
+      { source: "/timeline/:path*", destination: `${apiUrl}/timeline/:path*` },
       { source: "/calendar/:path*", destination: `${apiUrl}/calendar/:path*` },
       { source: "/taxonomy/:path*", destination: `${apiUrl}/taxonomy/:path*` },
       { source: "/profiles/:path*", destination: `${apiUrl}/profiles/:path*` },
@@ -28,6 +31,7 @@ const nextConfig: NextConfig = {
         source: "/admin/mentor-approvals/:path*",
         destination: `${apiUrl}/admin/mentor-approvals/:path*`,
       },
+      { source: "/admin/feedback/:path*", destination: `${apiUrl}/admin/feedback/:path*` },
       { source: "/health", destination: `${apiUrl}/health` },
     ];
   },

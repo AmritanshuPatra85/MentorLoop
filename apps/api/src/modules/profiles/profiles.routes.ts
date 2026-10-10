@@ -13,6 +13,7 @@ import {
   publicStartupProfileSchema,
 } from "@mentorloop/shared";
 import { db } from "../../db/client";
+import { pool } from "../../db/client";
 import {
   domains,
   mentorDomains,
@@ -273,6 +274,11 @@ const publicMentor: RequestHandler = asyncHandler(async (req, res) => {
       .where(eq(mentorStages.mentorId, id))
       .orderBy(mentorStages.displayOrder),
   ]);
+  const [{ rows: aggregateRows }, { rows: publicFeedback }] = await Promise.all([pool.query<{ average_rating: string | null; rating_count: string }>(
+    `SELECT avg(rating)::text average_rating,count(*)::text rating_count FROM session_feedback f JOIN sessions s ON s.id=f.session_id AND s.status='completed' WHERE f.rated_mentor_id=$1`, [id]), pool.query<{ rating:number; tags:string[]; comment:string|null; created_at:Date }>(
+    `SELECT f.rating,f.tags,f.comment,f.created_at FROM session_feedback f JOIN sessions s ON s.id=f.session_id AND s.status='completed'
+     WHERE f.rated_mentor_id=$1 AND f.visibility='public_to_mentor' AND f.author_user_id<>$1 ORDER BY f.created_at DESC LIMIT 5`, [id])]);
+  const aggregate=aggregateRows[0];
   res.json(
     publicMentorProfileSchema.parse({
       name: user.fullName,
@@ -287,6 +293,9 @@ const publicMentor: RequestHandler = asyncHandler(async (req, res) => {
       mentorshipStages: stageRows.map((r) => r.name),
       linkedinUrl: publicLink(profile.linkedinUrl),
       websiteUrl: publicLink(profile.websiteUrl),
+      averageRating: aggregate?.average_rating === null || aggregate?.average_rating === undefined ? null : Number(aggregate.average_rating),
+      ratingCount: Number(aggregate?.rating_count ?? 0),
+      publicFeedback: publicFeedback.map((item) => ({ rating:item.rating,tags:item.tags,comment:item.comment,createdAt:item.created_at.toISOString() })),
     }),
   );
 });

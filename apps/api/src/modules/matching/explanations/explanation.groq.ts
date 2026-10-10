@@ -1,11 +1,11 @@
-import Groq from "groq-sdk";
 import { env } from "../../../config/env";
+import { GROQ_REQUEST_TIMEOUT_MS, groqClient } from "../../../lib/groq-client";
 import { AppError } from "../../../lib/errors";
 import type { MatchResult } from "@mentorloop/shared";
 import type { MatchExplanationFacts } from "./explanation.types";
 
 export const GROQ_EXPLANATION_MAX_COMPLETION_TOKENS = 1024;
-export const GROQ_EXPLANATION_TIMEOUT_MS = 60_000;
+export const GROQ_EXPLANATION_TIMEOUT_MS = GROQ_REQUEST_TIMEOUT_MS;
 
 export type ExplanationCompletionParams = {
   model: string;
@@ -54,11 +54,7 @@ export function createGroqExplanationGenerator(createCompletion: CreateCompletio
   };
 }
 
-const groqClient = env.GROQ_API_KEY
-  ? new Groq({ apiKey: env.GROQ_API_KEY, timeout: GROQ_EXPLANATION_TIMEOUT_MS, maxRetries: 2 })
-  : null;
-
 /** The SDK retries 429/5xx with exponential backoff and honors retry-after / retry-after-ms headers. */
 export const generateGroqExplanation = groqClient
-  ? createGroqExplanationGenerator((params) => groqClient.chat.completions.create(params), env.GROQ_EXPLAIN_MODEL)
+  ? createGroqExplanationGenerator((params) => groqClient!.chat.completions.create(params), env.GROQ_EXPLAIN_MODEL)
   : null;

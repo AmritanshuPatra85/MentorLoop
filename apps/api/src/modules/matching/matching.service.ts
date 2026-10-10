@@ -1,6 +1,7 @@
 import { pool } from "../../db/client";
 import { listEligibleMentorIds, listEligibleStartupIds } from "./eligibility.service";
 import { matchingWeightsSchema, type MatchingWeights, type MatchResult } from "@mentorloop/shared";
+import { trackRecordFromRating } from "./track-record";
 
 type Direction = "mentor" | "startup";
 type Retrieved = { candidateId: string; cosineDistance: number };
@@ -158,6 +159,11 @@ export async function rankCandidates(direction: Direction, sourceUserId: string)
   if (!retrieved.length) return [];
   const data = await profileData(direction, sourceUserId, retrieved.map((item) => item.candidateId));
   const availability = await availabilityScores(direction, sourceUserId, retrieved.map((item) => item.candidateId));
+  const ratings = direction === "mentor" ? await pool.query<{mentor_id:string;average_rating:string;rating_count:string}>(
+    `SELECT f.rated_mentor_id mentor_id,avg(f.rating)::text average_rating,count(*)::text rating_count
+     FROM session_feedback f JOIN sessions s ON s.id=f.session_id AND s.status='completed'
+     WHERE f.rated_mentor_id=ANY($1::uuid[]) GROUP BY f.rated_mentor_id`, [retrieved.map((item)=>item.candidateId)]) : { rows: [] as {mentor_id:string;average_rating:string;rating_count:string}[] };
+  const trackById = new Map(ratings.rows.map((r)=>[r.mentor_id,trackRecordFromRating(Number(r.average_rating),Number(r.rating_count))]));
   const weights = await getMatchingWeights();
   const byId = new Map(data.map((item) => [item.candidate_id, item]));
   const ranked = retrieved.flatMap((item) => {
@@ -167,7 +173,7 @@ export async function rankCandidates(direction: Direction, sourceUserId: string)
       domainOverlap: domainScore(profile.source_domains ?? [], profile.domains ?? []),
       stageFit: stageScore(profile.source_stages ?? [], profile.stages ?? []),
       availabilityOverlap: availability.get(profile.candidate_id) ?? 0.5,
-      trackRecord: 0.5,
+      trackRecord: direction === "mentor" ? (trackById.get(profile.candidate_id) ?? 0.5) : 0.5,
     };
     const signals = Object.fromEntries(Object.entries(raw).map(([key, value]) => [key, { raw: value, weight: weights[key as keyof MatchingWeights], weighted: value * weights[key as keyof MatchingWeights] / 100 }])) as MatchResult["signals"];
     const boost = direction === "mentor" && Date.now() - new Date(profile.created_at).getTime() <= DEFAULT_NEW_MENTOR_DAYS * 86_400_000 ? NEW_MENTOR_BOOST : 0;

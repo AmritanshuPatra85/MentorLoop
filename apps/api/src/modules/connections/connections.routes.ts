@@ -5,16 +5,21 @@ import { and, eq, gt, isNotNull } from "drizzle-orm";
 import { asyncHandler } from "../../lib/async-handler";
 import { ConflictError, ForbiddenError, NotFoundError } from "../../lib/errors";
 import { requireAuth } from "../../middleware/require-auth";
+import { requireApproved } from "../../middleware/require-approved";
 import { requireRole } from "../../middleware/require-role";
+import { connectionActionItemsRouter } from "../scheduling/connection-action-items.routes";
 import { validate } from "../../middleware/validate";
 import { pool } from "../../db/client";
 import { db } from "../../db/client";
 import { CONNECTION_DECLINE_COOLDOWN_DAYS, CONNECTION_PENDING_EXPIRY_DAYS } from "../../db/schema/connections";
 import { connections, mentorProfiles, startups, users } from "../../db/schema";
 import { listEligibleStartupIds } from "../matching/eligibility.service";
+import { connectionTimelineRouter } from "../timeline/timeline.routes";
 
-export const connectionsRouter = Router();
+export const connectionsRouter = Router({ mergeParams: true });
 connectionsRouter.use(requireAuth);
+connectionsRouter.use("/:connectionId/action-items", requireApproved, requireRole("founder", "mentor"), connectionActionItemsRouter);
+connectionsRouter.use("/:connectionId/timeline", connectionTimelineRouter);
 
 /** Show mentor invitations to the founder who owns the startup. */
 connectionsRouter.get("/incoming", requireRole("founder"), asyncHandler(async (req, res) => {

@@ -49,6 +49,7 @@ export default function ConnectionsPage() {
           </div>
           <div className="flex flex-wrap gap-2 sm:justify-end">
             {connection.state === "accepted" ? <Link href={"/sessions?connectionId=" + connection.id} className="inline-flex h-9 items-center justify-center gap-2 rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground hover:bg-primary/90"><Link2 aria-hidden="true" className="size-4" />Schedule session</Link> : null}
+            {connection.state === "accepted" ? <Link href={`/connections/${connection.id}`} className="inline-flex h-9 items-center justify-center rounded-md border px-3 text-sm font-medium hover:bg-accent">View progress</Link> : null}
             {pending && !outgoing ? <><Button size="sm" onClick={() => transition.mutate({ id: connection.id, action: "accept" })} disabled={transition.isPending}>Accept</Button><Button size="sm" variant="outline" onClick={() => transition.mutate({ id: connection.id, action: "decline" })} disabled={transition.isPending}>Decline</Button></> : null}
             {pending && outgoing ? <Button size="sm" variant="outline" onClick={() => withdraw.mutate(connection.id)} disabled={withdraw.isPending}>Withdraw</Button> : null}
           </div>

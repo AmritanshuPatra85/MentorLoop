@@ -13,9 +13,15 @@ import { requireRole } from "../../middleware/require-role";
 import { validate } from "../../middleware/validate";
 import { assertAvailableSlot } from "./availability.service";
 import { updateOrCancelGoogleEvent } from "./calendar-google.service";
+import { sessionBriefRouter } from "./session-brief.routes";
+import { sessionActionItemsRouter } from "./session-action-items.routes";
+import { sessionFeedbackRouter } from "./session-feedback.routes";
 
 export const sessionsRouter = Router();
 sessionsRouter.use(requireAuth, requireApproved, requireRole("founder", "mentor"));
+sessionsRouter.use("/:sessionId/brief", sessionBriefRouter);
+sessionsRouter.use("/:sessionId/action-items", sessionActionItemsRouter);
+sessionsRouter.use("/:sessionId/feedback", sessionFeedbackRouter);
 
 const CHANGE_POLICY_MS = 24 * 60 * 60_000;
 
