@@ -17,6 +17,8 @@ import {
   profilesRouter,
   publicProfilesRouter,
 } from "./modules/profiles/profiles.routes";
+import { matchingAdminRouter, matchingRouter } from "./modules/matching/matching.routes";
+import { connectionsRouter } from "./modules/connections/connections.routes";
 
 export function createApp() {
   const app = express();
@@ -39,6 +41,9 @@ export function createApp() {
   app.use("/founder-onboarding", founderOnboardingRouter);
   app.use("/mentor-onboarding", mentorOnboardingRouter);
   app.use("/admin/mentor-approvals", mentorApprovalsRouter);
+  app.use("/admin/matching", matchingAdminRouter);
+  app.use("/matches", matchingRouter);
+  app.use("/connections", connectionsRouter);
   app.use("/auth", authRouter);
   if (env.NODE_ENV === "development") app.use("/debug", debugRouter);
 

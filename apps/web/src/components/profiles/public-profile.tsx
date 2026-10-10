@@ -1,14 +1,18 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { ArrowUpRight, Loader2, UserRound } from "lucide-react";
 import {
+  matchEventActionResponseSchema,
   publicMentorProfileSchema,
   publicStartupProfileSchema,
 } from "@mentorloop/shared";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { PageHeader } from "@/components/common/page-header";
 import { api } from "@/lib/api-client";
+import { useAuth } from "@/components/auth/auth-provider";
+import { InviteToConnect } from "@/components/connections/invite-to-connect";
 
 function Tags({ values }: { values: string[] }) {
   return values.length ? (
@@ -106,10 +110,16 @@ export function PublicMentorProfile({ id }: { id: string }) {
 }
 
 export function PublicStartupProfile({ id }: { id: string }) {
+  const { user } = useAuth();
   const query = useQuery({
     queryKey: ["public-profile", "startup", id],
     queryFn: () => api.get(`/profiles/startups/${id}`, publicStartupProfileSchema),
   });
+  useEffect(() => {
+    if (user?.role === "mentor" && user.status === "active" && user.emailVerified && query.data?.id) {
+      void api.post(`/matches/startup/${query.data.id}/events`, matchEventActionResponseSchema, { eventType: "view" }).catch(() => undefined);
+    }
+  }, [query.data?.id, user?.emailVerified, user?.role, user?.status]);
   if (query.isPending)
     return (
       <div role="status" className="flex items-center gap-2 py-20 text-muted-foreground">
@@ -130,6 +140,9 @@ export function PublicStartupProfile({ id }: { id: string }) {
               description={profile.oneLiner ?? "Startup profile"}
             />
           </div>
+          {user?.role === "mentor" && user.status === "active" && user.emailVerified ? (
+            <div className="sm:ml-auto"><InviteToConnect startupId={profile.id} startupName={profile.name} /></div>
+          ) : null}
         </CardContent>
       </Card>
       <Card>

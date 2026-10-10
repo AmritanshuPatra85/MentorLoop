@@ -41,6 +41,14 @@ export const registerSchema = z.object({
   email: emailSchema,
   password: passwordSchema,
   role: signupRoleSchema,
+}).superRefine(({ email, role }, ctx) => {
+  if (role === "founder" && !isKiitEmail(email)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["email"],
+      message: `Founder accounts require an @${KIIT_EMAIL_DOMAIN} email`,
+    });
+  }
 });
 export type RegisterInput = z.infer<typeof registerSchema>;
 

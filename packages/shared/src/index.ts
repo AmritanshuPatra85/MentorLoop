@@ -7,4 +7,5 @@ export * from "./founder-onboarding";
 export * from "./mentor-onboarding";
 export * from "./admin-approvals";
 export * from "./profiles";
+export * from "./matching";
 export * from "./profile-completeness";

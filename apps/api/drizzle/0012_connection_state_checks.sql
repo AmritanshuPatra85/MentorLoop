@@ -1,0 +1,2 @@
+ALTER TABLE "connections" ADD CONSTRAINT "connections_pending_expiry_ck" CHECK ("connections"."state" NOT IN ('requested', 'invited') OR "connections"."expires_at" IS NOT NULL);--> statement-breakpoint
+ALTER TABLE "connections" ADD CONSTRAINT "connections_decline_timestamp_ck" CHECK ("connections"."state" <> 'declined' OR "connections"."last_declined_at" IS NOT NULL);

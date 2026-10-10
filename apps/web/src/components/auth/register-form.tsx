@@ -122,7 +122,12 @@ export function RegisterForm() {
         />
       </Field>
 
-      <Field id="email" label="Email" error={errors.email}>
+      <Field
+        id="email"
+        label="Email"
+        error={errors.email}
+        hint={role === "founder" ? "Founder accounts require an @kiit.ac.in email." : undefined}
+      >
         <Input
           id="email"
           type="email"
@@ -130,7 +135,7 @@ export function RegisterForm() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           aria-invalid={errors.email ? true : undefined}
-          aria-describedby={errors.email ? "email-error" : undefined}
+          aria-describedby={errors.email ? "email-error" : role === "founder" ? "email-hint" : undefined}
         />
       </Field>
 

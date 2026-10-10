@@ -27,6 +27,9 @@ const envSchema = z.object({
   // Google sign-in is optional: without these the Google button reports "not configured".
   GOOGLE_CLIENT_ID: optionalString,
   GOOGLE_CLIENT_SECRET: optionalString,
+  GROQ_API_KEY: optionalString,
+  GROQ_EXPLAIN_MODEL: z.string().trim().min(1).default("openai/gpt-oss-20b"),
+  GROQ_QUALITY_MODEL: z.string().trim().min(1).default("openai/gpt-oss-120b"),
 });
 
 export type Env = z.infer<typeof envSchema>;

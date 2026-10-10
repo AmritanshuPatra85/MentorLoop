@@ -4,6 +4,7 @@ import { logger } from "./config/logger";
 import { pool } from "./db/client";
 import { redis } from "./lib/redis";
 import { closeEmbeddingQueue } from "./modules/embeddings/embedding.queue";
+import { closeMatchExplanationQueue } from "./modules/matching/explanations/explanation.queue";
 
 const app = createApp();
 
@@ -18,6 +19,7 @@ async function shutdown(signal: string) {
   logger.info(`${signal} received, shutting down`);
   server.close();
   await closeEmbeddingQueue().catch((error: unknown) => logger.error({ error }, "Embedding queue shutdown failed"));
+  await closeMatchExplanationQueue().catch((error: unknown) => logger.error({ error: error instanceof Error ? error.name : "unknown" }, "Match explanation queue shutdown failed"));
   await Promise.allSettled([pool.end(), redis.quit()]);
   process.exit(0);
 }
