@@ -1,12 +1,12 @@
 # MentorLoop
 
-** A startup matching that explains itself, can't double-book, and turns every session into tracked progress.**
+A mentor founder portal matching that explains itself, can't double-book, and turns every session into tracked progress.
 
 Built for the KIIT E-Cell tech domain assignment (Mentorâ€“Startup Matching Platform).
 
 Most mentor directories stop at an introduction. MentorLoop covers the whole relationship: it matches founders with mentors and says *why*, handles booking safely, prepares both sides before each session with an AI digest, turns messy session notes into tracked action items, and feeds ratings back into future matches. That feedback is the loop.
 
-> Status: Phases 1â€“6 of the build blueprint are implemented and working locally. Chat, live notifications, reminders, deployment and the analytics dashboard are planned but not built. See [What is and isn't built](#what-is-and-isnt-built).
+> Status: MVP is  implemented and working locally. Chat, live notifications, reminders, deployment and the analytics dashboard are planned but not built. See [What is and isn't built](#what-is-and-isnt-built).
 
 ---
 
