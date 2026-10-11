@@ -10,3 +10,7 @@ next-env.d.ts
 # Keep only the root README in the repo
 *.md
 !/README.md
+
+# Local-only working folders
+handoff/
+_stray_backup/
