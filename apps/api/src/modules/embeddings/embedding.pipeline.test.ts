@@ -119,3 +119,65 @@ test("backfill paginates, skips current profiles and supports a dry run", async 
   assert.deepEqual(counts, { profilesScanned: 5, jobsEnqueued: 0, eligible: 3, currentSkipped: 2, failures: 0 });
   assert.deepEqual(enqueued, []);
 });
+
+test("unchanged hash touches the embedding timestamp instead of regenerating the vector", async () => {
+  const text = "Startup: A";
+  const touched: Array<{ profileId: string; version: string }> = [];
+  let inferenceCount = 0;
+  let stores = 0;
+  const processor = createEmbeddingProcessor({
+    load: async () => ({ text, version: "version-9" }),
+    getStored: async () => ({ contentHash: hashEmbeddingText(text), embedding: vector }),
+    store: async () => { stores++; return true; },
+    remove: async () => true,
+    touch: async (data, version) => { touched.push({ profileId: data.profileId, version }); return true; },
+    generate: async () => { inferenceCount++; return vector; },
+  });
+  assert.deepEqual(await processor(startup), { status: "unchanged" });
+  assert.deepEqual(touched, [{ profileId: startup.profileId, version: "version-9" }]);
+  assert.equal(inferenceCount, 0);
+  assert.equal(stores, 0);
+});
+
+test("unchanged hash with a superseded version reports stale so a newer job follows", async () => {
+  const text = "Startup: A";
+  const processor = createEmbeddingProcessor({
+    load: async () => ({ text, version: "version-10" }),
+    getStored: async () => ({ contentHash: hashEmbeddingText(text), embedding: vector }),
+    store: async () => true,
+    remove: async () => true,
+    touch: async () => false,
+    generate: async () => vector,
+  });
+  assert.deepEqual(await processor(startup), { status: "stale" });
+});
+
+test("changed hash regenerates the vector without touching the timestamp", async () => {
+  let touchCalls = 0;
+  let inferenceCount = 0;
+  const processor = createEmbeddingProcessor({
+    load: async () => ({ text: "Startup: B", version: "version-3" }),
+    getStored: async () => ({ contentHash: hashEmbeddingText("Startup: A"), embedding: vector }),
+    store: async () => true,
+    remove: async () => true,
+    touch: async () => { touchCalls++; return true; },
+    generate: async () => { inferenceCount++; return vector; },
+  });
+  assert.deepEqual(await processor(startup), { status: "updated" });
+  assert.equal(inferenceCount, 1);
+  assert.equal(touchCalls, 0);
+});
+
+test("unchanged hash without a touch dependency still resolves unchanged", async () => {
+  const text = "Startup: A";
+  let inferenceCount = 0;
+  const processor = createEmbeddingProcessor({
+    load: async () => ({ text, version: "version-9" }),
+    getStored: async () => ({ contentHash: hashEmbeddingText(text), embedding: vector }),
+    store: async () => true,
+    remove: async () => true,
+    generate: async () => { inferenceCount++; return vector; },
+  });
+  assert.deepEqual(await processor(startup), { status: "unchanged" });
+  assert.equal(inferenceCount, 0);
+});
