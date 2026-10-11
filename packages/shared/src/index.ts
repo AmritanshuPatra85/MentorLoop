@@ -12,3 +12,4 @@ export * from "./scheduling";
 export * from "./profile-completeness";
 export * from "./feedback";
 export * from "./startup-timeline";
+export * from "./admin-console";

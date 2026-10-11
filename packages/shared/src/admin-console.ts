@@ -1,0 +1,7 @@
+import { z } from "zod";
+import { userRoleSchema,userStatusSchema } from "./auth";
+
+export const adminUserListQuerySchema=z.object({search:z.string().trim().max(100).optional(),role:userRoleSchema.optional(),status:userStatusSchema.optional(),limit:z.coerce.number().int().min(1).max(100).default(25),offset:z.coerce.number().int().min(0).default(0)});
+export const adminUserListResponseSchema=z.object({users:z.array(z.object({id:z.string().uuid(),fullName:z.string(),email:z.string().email(),role:userRoleSchema,status:userStatusSchema,emailVerifiedAt:z.string().datetime().nullable(),createdAt:z.string().datetime()})),total:z.number().int().nonnegative(),limit:z.number().int(),offset:z.number().int()});
+const countMap=(keys:readonly string[])=>z.array(z.object({status:z.enum(keys as [string,...string[]]),count:z.number().int().nonnegative()}));
+export const adminAnalyticsResponseSchema=z.object({generatedAt:z.string().datetime(),users:z.object({total:z.number().int(),verified:z.number().int(),byRole:countMap(["founder","mentor","admin"]),byStatus:countMap(["active","pending_approval","rejected","suspended"])}),profiles:z.object({startups:z.number().int(),completeStartups:z.number().int(),mentorProfiles:z.number().int(),completeMentorProfiles:z.number().int()}),connections:countMap(["requested","invited","accepted","declined","withdrawn","expired"]),sessions:countMap(["scheduled","rescheduled","cancelled","completed","no_show"]),matchEvents:countMap(["view","save","dismiss","request"])});

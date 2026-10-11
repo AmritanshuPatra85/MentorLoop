@@ -1,5 +1,5 @@
 import { embeddingService } from "./embedding.service";
-import { deleteEmbeddingIfCurrent, getStoredEmbedding, hashEmbeddingText, loadEmbeddingProfile, storeEmbeddingIfCurrent } from "./embedding.repository";
+import { deleteEmbeddingIfCurrent, getStoredEmbedding, hashEmbeddingText, loadEmbeddingProfile, storeEmbeddingIfCurrent, touchEmbeddingIfCurrent } from "./embedding.repository";
 import type { EmbeddingJobData } from "./embedding.queue";
 
 export type EmbeddingProcessorDependencies = {
@@ -7,6 +7,7 @@ export type EmbeddingProcessorDependencies = {
   getStored: typeof getStoredEmbedding;
   store: typeof storeEmbeddingIfCurrent;
   remove: typeof deleteEmbeddingIfCurrent;
+  touch?: typeof touchEmbeddingIfCurrent;
   generate: (text: string) => Promise<number[]>;
 };
 
@@ -15,6 +16,7 @@ const defaultDependencies: EmbeddingProcessorDependencies = {
   getStored: getStoredEmbedding,
   store: storeEmbeddingIfCurrent,
   remove: deleteEmbeddingIfCurrent,
+  touch: touchEmbeddingIfCurrent,
   generate: (text) => embeddingService.generate(text),
 };
 
@@ -30,7 +32,11 @@ export function createEmbeddingProcessor(dependencies: EmbeddingProcessorDepende
     const contentHash = hashEmbeddingText(profile.text);
     const stored = await dependencies.getStored(data);
     if (stored?.contentHash === contentHash && stored.embedding.length === 384 && stored.embedding.every(Number.isFinite)) {
-      return { status: "unchanged" as const };
+      // The embedded text did not change, but the profile row may have been updated
+      // (availability, timezone, capacity). Refresh the vector's timestamp so matching
+      // does not treat it as stale.
+      const touched = await dependencies.touch?.(data, profile.version);
+      return { status: touched === false ? "stale" as const : "unchanged" as const };
     }
 
     const embedding = await dependencies.generate(profile.text);

@@ -32,6 +32,8 @@ const nextConfig: NextConfig = {
         destination: `${apiUrl}/admin/mentor-approvals/:path*`,
       },
       { source: "/admin/feedback/:path*", destination: `${apiUrl}/admin/feedback/:path*` },
+      { source: "/admin-api/users", destination: `${apiUrl}/admin/users` },
+      { source: "/admin-api/analytics", destination: `${apiUrl}/admin/analytics` },
       { source: "/health", destination: `${apiUrl}/health` },
     ];
   },

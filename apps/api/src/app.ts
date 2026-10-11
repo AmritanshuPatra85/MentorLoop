@@ -25,6 +25,7 @@ import { sessionsRouter } from "./modules/scheduling/sessions.routes";
 import { calendarRouter } from "./modules/scheduling/calendar.routes";
 import { adminFeedbackRouter } from "./modules/admin/feedback.routes";
 import { founderTimelineRouter } from "./modules/timeline/timeline.routes";
+import { adminConsoleRouter } from "./modules/admin/admin-console.routes";
 
 export function createApp() {
   const app = express();
@@ -48,6 +49,7 @@ export function createApp() {
   app.use("/mentor-onboarding", mentorOnboardingRouter);
   app.use("/admin/mentor-approvals", mentorApprovalsRouter);
   app.use("/admin/feedback", adminFeedbackRouter);
+  app.use("/admin", adminConsoleRouter);
   app.use("/admin/matching", matchingAdminRouter);
   app.use("/matches", matchingRouter);
   app.use("/connections", connectionsRouter);

@@ -110,6 +110,38 @@ export async function storeEmbeddingIfCurrent(
   });
 }
 
+/**
+ * Refreshes the stored embedding's updated_at when the embedded text is unchanged but the
+ * profile row was updated (for example availability, timezone or capacity). Matching requires
+ * embedding.updated_at >= profile.updated_at, so without this the vector would stay "stale".
+ * Returns false when the profile changed again since `version` was read (a newer job will follow).
+ */
+export async function touchEmbeddingIfCurrent(data: EmbeddingJobData, version: string): Promise<boolean> {
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    const table = data.profileType === "startup" ? "startups" : "mentor_profiles";
+    const key = data.profileType === "startup" ? "id" : "user_id";
+    const { rows } = await client.query<{ version: string }>(
+      `SELECT updated_at::text AS version FROM ${table} WHERE ${key} = $1 FOR SHARE`,
+      [data.profileId],
+    );
+    if (!rows[0] || rows[0].version !== version) {
+      await client.query("ROLLBACK");
+      return false;
+    }
+    const column = data.profileType === "startup" ? "startup_id" : "mentor_id";
+    await client.query(`UPDATE profile_embeddings SET updated_at = now() WHERE ${column} = $1`, [data.profileId]);
+    await client.query("COMMIT");
+    return true;
+  } catch (error) {
+    await client.query("ROLLBACK").catch(() => undefined);
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
 export async function deleteEmbeddingIfCurrent(data: EmbeddingJobData, version: string): Promise<boolean> {
   const client = await pool.connect();
   try {

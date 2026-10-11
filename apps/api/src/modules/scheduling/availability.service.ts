@@ -2,6 +2,7 @@ import { eq } from "drizzle-orm";
 import { db, pool } from "../../db/client";
 import { availabilityExceptions, availabilityRules, mentorProfiles } from "../../db/schema";
 import { ConflictError, NotFoundError } from "../../lib/errors";
+import { enqueueProfileEmbedding } from "../embeddings/embedding.queue";
 import { isTimeZone, localDateKey, localDateTimeToInstant, nextDateKey, weekdayForDateKey } from "./time";
 
 export type Slot = { startsAt: string; endsAt: string };
@@ -47,6 +48,10 @@ export async function saveAvailability(mentorId: string, input: {
     await tx.delete(availabilityRules).where(eq(availabilityRules.mentorId, mentorId));
     if (input.rules.length) await tx.insert(availabilityRules).values(input.rules.map((rule) => ({ mentorId, ...rule })));
   });
+  // The profile row's updated_at moved, and matching treats an embedding older than the
+  // profile as stale. Queue a refresh after commit; the job is deduplicated and, when the
+  // embedded text is unchanged, only refreshes the vector's timestamp.
+  await enqueueProfileEmbedding({ profileType: "mentor", profileId: mentorId });
   return readAvailability(mentorId);
 }
 
