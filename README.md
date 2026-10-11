@@ -212,7 +212,7 @@ Database-level guarantees worth knowing about:
 
 ## What is and isn't built
 
-**Built (Phases 1â€“6)**
+**Built **
 
 - Registration, login, Google sign-in, email verification, role and status guards
 - Founder and mentor onboarding, profile editing, avatars, completeness indicators
