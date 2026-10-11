@@ -1,6 +1,6 @@
 # MentorLoop
 
-**Mentorâ€“startup matching that explains itself, can't double-book, and turns every session into tracked progress.**
+** A startup matching that explains itself, can't double-book, and turns every session into tracked progress.**
 
 Built for the KIIT E-Cell tech domain assignment (Mentorâ€“Startup Matching Platform).
 
